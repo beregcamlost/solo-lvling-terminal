@@ -1,6 +1,6 @@
 # solo-lvling-terminal
 
-Solo Leveling anime-themed terminal setup — 3 Ghostty color schemes + RPG status bar ZSH prompt.
+Solo Leveling anime-themed terminal setup — 3 Ghostty color schemes + RPG status bar prompt.
 
 ## Themes
 
@@ -10,7 +10,7 @@ Solo Leveling anime-themed terminal setup — 3 Ghostty color schemes + RPG stat
 | **SoloLeveling-DungeonGate** | Midnight blues, teal portal glow, red danger |
 | **SoloLeveling-Arise** | Pure black, vivid neon purple/cyan, max contrast |
 
-## ZSH Prompt
+## Prompt
 
 Two-line RPG status bar with rank badge, git info, and HP bar:
 
@@ -21,14 +21,27 @@ Two-line RPG status bar with rank badge, git info, and HP bar:
 
 - HP bar turns **green** on success, **red** on failure
 - Git segment auto-hides outside repos
-- Uses `%F{N}` ANSI indices — colors adapt to whichever Ghostty theme is active
-- **Smart completions**: success-only history suggestions via zsh-autosuggestions custom strategy, case-insensitive tab completion with menu selection
+- Colors adapt to whichever Ghostty theme is active
+
+## Platform Support
+
+| Platform | Shell | Prompt | Extras |
+|----------|-------|--------|--------|
+| **macOS** | ZSH (oh-my-zsh) | `solo-leveling.zsh-theme` | Success-only history, autosuggestions, smart completions |
+| **Linux** | Fish | `fish_prompt.fish` | Success-only history, `claude`/`claudia` aliases |
+
+### Claude Code Aliases (Linux/Fish)
+
+| Alias | Command |
+|-------|---------|
+| `claude` | `claude --model claude-opus-4-6 --permission-mode plan` |
+| `claudia` | `claude --model claude-opus-4-6 --permission-mode plan --allow-dangerously-skip-permissions` |
 
 ## Requirements
 
 - [Ghostty](https://ghostty.org) terminal
-- [oh-my-zsh](https://ohmyz.sh)
-- [zsh-autosuggestions](https://github.com/zsh-users/zsh-autosuggestions) plugin
+- **macOS**: [oh-my-zsh](https://ohmyz.sh) + [zsh-autosuggestions](https://github.com/zsh-users/zsh-autosuggestions)
+- **Linux**: [Fish shell](https://fishshell.com)
 
 ## Install
 
@@ -36,20 +49,25 @@ Two-line RPG status bar with rank badge, git info, and HP bar:
 ./install.sh
 ```
 
-Or manually:
+The installer auto-detects your OS and installs the right files.
 
+### Manual Install
+
+**Ghostty themes (all platforms):**
 ```bash
-# Ghostty themes
 cp ghostty/themes/* ~/.config/ghostty/themes/
+```
 
-# ZSH theme
-cp zsh/themes/solo-leveling.zsh-theme ~/.oh-my-zsh/custom/themes/
+**macOS (ZSH):**
+```bash
+cp macos/zsh/themes/solo-leveling.zsh-theme ~/.oh-my-zsh/custom/themes/
+# Set ZSH_THEME="solo-leveling" in ~/.zshrc
+```
 
-# Set theme in ~/.config/ghostty/config
-# theme = dark:SoloLeveling-ShadowMonarch,light:Catppuccin Latte
-
-# Set theme in ~/.zshrc
-# ZSH_THEME="solo-leveling"
+**Linux (Fish):**
+```bash
+cp linux/fish/conf.d/solo-leveling.fish ~/.config/fish/conf.d/
+cp linux/fish/functions/*.fish ~/.config/fish/functions/
 ```
 
 ## Switching Themes
