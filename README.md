@@ -36,6 +36,7 @@ Two-line RPG status bar with rank badge, git info, and HP bar:
 |-------|---------|
 | `claude` | `claude --model claude-opus-4-6 --permission-mode plan` |
 | `claudia` | `claude --model claude-opus-4-6 --permission-mode plan --allow-dangerously-skip-permissions` |
+| `claudeteam` | `claude --model claude-opus-4-6 --permission-mode plan` inside tmux (agent teams) |
 
 ## Requirements
 
