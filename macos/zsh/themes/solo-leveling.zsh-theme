@@ -1,5 +1,7 @@
-# Solo Leveling RPG Status Bar — ZSH Theme
-# Uses ANSI color indices (%F{N}) to adapt to any Ghostty theme
+# Solo Leveling Powerline — ZSH Theme
+# Palette indices map to Ghostty ShadowMonarch theme:
+#   0=#1a1a2e  1=#e63946  2=#06d6a0  3=#f4a261
+#   4=#4cc9f0  5=#7b2fbe  6=#4895ef  7=#c8c8e0  8=#2d2d4a
 
 # ── Success-Only History ──────────────────────────────────────
 # Tracks commands that exit 0 in a separate file.
@@ -8,11 +10,12 @@
 _SL_SUCCESS_HISTFILE="${HOME}/.zsh_history_success"
 [[ -f "$_SL_SUCCESS_HISTFILE" ]] || touch "$_SL_SUCCESS_HISTFILE"
 _sl_last_cmd=""
+_sl_last_exit=0
 
 _sl_preexec() { _sl_last_cmd="$1"; }
 _sl_precmd() {
-  local exit_code=$?
-  if [[ $exit_code -eq 0 && -n "$_sl_last_cmd" ]]; then
+  _sl_last_exit=$?
+  if [[ $_sl_last_exit -eq 0 && -n "$_sl_last_cmd" ]]; then
     print -r -- "$_sl_last_cmd" >> "$_SL_SUCCESS_HISTFILE"
   fi
   _sl_last_cmd=""
@@ -20,7 +23,14 @@ _sl_precmd() {
 
 autoload -Uz add-zsh-hook
 add-zsh-hook preexec _sl_preexec
-add-zsh-hook precmd _sl_precmd
+add-zsh-hook precmd  _sl_precmd
+
+# ── Terminal title ────────────────────────────────────────────
+
+_sl_set_title() {
+  print -Pn "\e]2;%n@%m: %~\a"
+}
+add-zsh-hook precmd _sl_set_title
 
 # ── zsh-autosuggestions config ────────────────────────────────
 # Custom strategy: search success history first, then regular history
@@ -54,41 +64,147 @@ zstyle ':completion:*' group-name ''
 zstyle ':completion:*' squeeze-slashes true
 zstyle ':completion:*:*:kill:*:processes' list-colors '=(#b) #([0-9]#)*=0=01;31'
 
-# ── Git prompt config (oh-my-zsh) ────────────────────────────
+# ── Smart path shortening ─────────────────────────────────────
+# Abbreviates middle components, keeps first and last full.
 
-ZSH_THEME_GIT_PROMPT_PREFIX="%F{5}%1{⚔️%} "
-ZSH_THEME_GIT_PROMPT_SUFFIX="%f"
-ZSH_THEME_GIT_PROMPT_DIRTY=" %F{1}%1{✗%}%f"
-ZSH_THEME_GIT_PROMPT_CLEAN=" %F{2}%1{✓%}%f"
-
-# Build the git segment (empty when not in a repo)
-_sl_git_segment() {
-  local git_info="$(git_prompt_info)"
-  [[ -n "$git_info" ]] && echo " | ${git_info}"
+_sl_short_dir() {
+  local full="${PWD/#$HOME/~}"
+  # If the path has 3 or fewer components, show as-is
+  local parts=("${(@s:/:)full}")
+  if [[ ${#parts} -le 3 ]]; then
+    echo "$full"
+    return
+  fi
+  # Keep first component and last two, abbreviate middle ones
+  local first="${parts[1]}"
+  local last="${parts[-1]}"
+  local second_last="${parts[-2]}"
+  echo "${first}/…/${second_last}/${last}"
 }
 
-# HP bar: green if last command OK ($1=0), red if failed
-_sl_hp_bar() {
-  if [[ $1 -eq 0 ]]; then
-    echo "%F{2}██████████%f"
+# ── Git info ──────────────────────────────────────────────────
+
+_sl_git_info() {
+  local branch
+  branch=$(git symbolic-ref --short HEAD 2>/dev/null) \
+    || branch=$(git rev-parse --short HEAD 2>/dev/null)
+  [[ -z "$branch" ]] && return
+  local dirty
+  if [[ -n $(git status --porcelain 2>/dev/null) ]]; then
+    dirty="%F{1}%f"
   else
-    echo "%F{1}██████████%f"
+    dirty="%F{2}%f"
+  fi
+  echo "  $branch $dirty"
+}
+
+# ── Node info ─────────────────────────────────────────────────
+
+_sl_node_info() {
+  local dir="$PWD"
+  while [[ "$dir" != "/" ]]; do
+    if [[ -f "$dir/package.json" ]]; then
+      node -v 2>/dev/null | tr -d 'v'
+      return
+    fi
+    dir="${dir:h}"
+  done
+}
+
+# ── Powerline segments ────────────────────────────────────────
+# Prints the info bar above the prompt via precmd hook.
+# Arrow character  (U+E0B0) requires a Nerd Font.
+# Apple logo  (U+F179) requires a Nerd Font.
+
+_sl_info_bar() {
+  local exit_code=$_sl_last_exit
+
+  # Segment 0: OS icon — white on dark purple (bg=0)
+  local seg0="%F{7}%K{0}  %f%k"
+
+  # Arrow 0→1: fg=0 (dark purple), bg=8 (lighter purple)
+  local arr01="%F{0}%K{8}%f"
+
+  # Segment 1: user@host — cyan on lighter purple (bg=8)
+  local seg1="%F{6}%K{8} %n@%m %f%k"
+
+  # Arrow 1→2: fg=8 (lighter purple), bg=0 (dark purple)
+  local arr12="%F{8}%K{0}%f"
+
+  # Segment 2: folder — yellow on dark purple (bg=0)
+  local seg2="%F{3}%K{0}  $(_sl_short_dir) %f%k"
+
+  # Git segment (conditional)
+  local git_raw
+  git_raw=$(_sl_git_info)
+  local seg_git=""
+  local arr_git=""
+  if [[ -n "$git_raw" ]]; then
+    # Arrow 2→git: fg=0, bg=8
+    arr_git="%F{0}%K{8}%f"
+    seg_git="%F{4}%K{8}${git_raw} %f%k"
+    # After git the "current bg" is 8
+    local after_git_arr="%F{8}%K{0}%f"
+
+    # Node segment (conditional, chained after git)
+    local node_ver
+    node_ver=$(_sl_node_info)
+    local seg_node=""
+    if [[ -n "$node_ver" ]]; then
+      local arr_node="%F{8}%K{0}%f"  # already at bg=0 after git→node arrow
+      seg_node="%F{2}%K{0}  ${node_ver} %f%k"
+      local after_node_arr="%F{0}"
+
+      # Error segment (conditional)
+      local seg_err=""
+      if [[ $exit_code -ne 0 ]]; then
+        seg_err="%F{0}%K{1}%f%F{15}%K{1}  %f%k%F{1}%f"
+        print -P "${seg0}${arr01}${seg1}${arr12}${seg2}${arr_git}${seg_git}${after_git_arr}${seg_node}${seg_err}"
+      else
+        print -P "${seg0}${arr01}${seg1}${arr12}${seg2}${arr_git}${seg_git}${after_git_arr}${seg_node}%F{0}%f"
+      fi
+    else
+      # No node
+      local seg_err=""
+      if [[ $exit_code -ne 0 ]]; then
+        seg_err="${after_git_arr}%F{15}%K{1}  %f%k%F{1}%f"
+        print -P "${seg0}${arr01}${seg1}${arr12}${seg2}${arr_git}${seg_git}${seg_err}"
+      else
+        print -P "${seg0}${arr01}${seg1}${arr12}${seg2}${arr_git}${seg_git}${after_git_arr}%f"
+      fi
+    fi
+  else
+    # No git — after folder bg=0
+    local node_ver
+    node_ver=$(_sl_node_info)
+    local seg_node=""
+    if [[ -n "$node_ver" ]]; then
+      # Arrow 2→node: fg=0, bg=0 (same bg, just separator color)
+      local arr_node="%F{8}%K{0}%f"
+      seg_node="%F{2}%K{0}  ${node_ver} %f%k"
+
+      if [[ $exit_code -ne 0 ]]; then
+        local seg_err="%F{0}%K{1}%f%F{15}%K{1}  %f%k%F{1}%f"
+        print -P "${seg0}${arr01}${seg1}${arr12}${seg2}${arr_node}${seg_node}${seg_err}"
+      else
+        print -P "${seg0}${arr01}${seg1}${arr12}${seg2}${arr_node}${seg_node}%F{0}%f"
+      fi
+    else
+      # No git, no node
+      if [[ $exit_code -ne 0 ]]; then
+        local seg_err="%F{0}%K{1}%f%F{15}%K{1}  %f%k%F{1}%f"
+        print -P "${seg0}${arr01}${seg1}${arr12}${seg2}${seg_err}"
+      else
+        print -P "${seg0}${arr01}${seg1}${arr12}${seg2}%F{0}%f"
+      fi
+    fi
   fi
 }
 
-# Top line
-_sl_top() {
-  local rank="%F{5}%B[SSS-RANK]%b %1{⚡%}%f"
-  local user="%F{6}%1{🗡️%} %n@%m%f"
-  local dir="%F{3}%1{🏯%} %~%f"
-  local time="%F{8}%1{⏱%}  %T%f"
-  local git='$(_sl_git_segment)'
+add-zsh-hook precmd _sl_info_bar
 
-  echo "${rank} | ${user} | ${dir}${git} | ${time}"
-}
+# ── Prompt ────────────────────────────────────────────────────
 
-# Prompt
 setopt PROMPT_SUBST
-PROMPT='%F{8}╔═%f $(_sl_top)
-%F{8}╚═%f [HP $(_sl_hp_bar $?)] %F{5}%B►%b%f '
-RPROMPT=''
+PROMPT='%F{5}❯%f '
+RPROMPT='%F{5}%T%f'

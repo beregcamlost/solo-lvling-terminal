@@ -1,6 +1,6 @@
 # solo-lvling-terminal
 
-Solo Leveling anime-themed terminal setup — 3 Ghostty color schemes + RPG status bar prompt.
+Solo Leveling anime-themed terminal setup — 3 Ghostty color schemes + powerline ZSH prompt.
 
 ## Themes
 
@@ -12,16 +12,28 @@ Solo Leveling anime-themed terminal setup — 3 Ghostty color schemes + RPG stat
 
 ## Prompt
 
-Two-line RPG status bar with rank badge, git info, and HP bar:
+Powerline-style two-line prompt. The info bar is rendered via `precmd`; the input line is a clean `❯`.
 
 ```
-╔═ [SSS-RANK] ⚡ | 🗡️  user@host | 🏯  ~/project | ⚔️  main ✓ | ⏱  12:34:56
-╚═ [HP ██████████] ►
+  beren@Beren-MBP  ~/…/nodejs/project   develop ✓   25.8.1
+❯
 ```
 
-- HP bar turns **green** on success, **red** on failure
-- Git segment auto-hides outside repos
-- Colors adapt to whichever Ghostty theme is active
+Segments (left to right):
+
+- OS icon () — always shown
+- `user@host` — always shown
+- Folder () — smart-shortened path
+- Git branch + status ( branch  /  ) — hidden outside repos
+- Node version () — hidden when not applicable
+- Error indicator () — shown only on non-zero exit
+
+Colors adapt to whichever Ghostty theme is active via `%F{N}` ANSI indices. Powerline arrows () separate segments.
+
+Additional features:
+
+- **Success-only history suggestions** via a custom `zsh-autosuggestions` strategy (only exit-0 commands are suggested)
+- **Menu-select tab completion** with arrow-key navigation and case-insensitive matching
 
 ## Platform Support
 
@@ -43,6 +55,7 @@ Two-line RPG status bar with rank badge, git info, and HP bar:
 - [Ghostty](https://ghostty.org) terminal
 - **macOS**: [oh-my-zsh](https://ohmyz.sh) + [zsh-autosuggestions](https://github.com/zsh-users/zsh-autosuggestions)
 - **Linux**: [Fish shell](https://fishshell.com)
+- A [Nerd Font](https://www.nerdfonts.com) — e.g. **FiraCode Nerd Font** (required for powerline glyphs)
 
 ## Install
 
@@ -63,6 +76,7 @@ cp ghostty/themes/* ~/.config/ghostty/themes/
 ```bash
 cp macos/zsh/themes/solo-leveling.zsh-theme ~/.oh-my-zsh/custom/themes/
 # Set ZSH_THEME="solo-leveling" in ~/.zshrc
+# Set font-family = FiraCode Nerd Font in ~/.config/ghostty/config
 ```
 
 **Linux (Fish):**
