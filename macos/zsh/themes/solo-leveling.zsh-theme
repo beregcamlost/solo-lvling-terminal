@@ -12,13 +12,20 @@ _SL_SUCCESS_HISTFILE="${HOME}/.zsh_history_success"
 _sl_last_cmd=""
 _sl_last_exit=0
 
-_sl_preexec() { _sl_last_cmd="$1"; }
+_sl_ran_cmd=0
+_sl_preexec() { _sl_last_cmd="$1"; _sl_ran_cmd=1; }
 _sl_precmd() {
-  _sl_last_exit=$?
-  if [[ $_sl_last_exit -eq 0 && -n "$_sl_last_cmd" ]]; then
-    print -r -- "$_sl_last_cmd" >> "$_SL_SUCCESS_HISTFILE"
+  local exit_code=$?
+  if [[ $_sl_ran_cmd -eq 1 ]]; then
+    _sl_last_exit=$exit_code
+    if [[ $exit_code -eq 0 && -n "$_sl_last_cmd" ]]; then
+      print -r -- "$_sl_last_cmd" >> "$_SL_SUCCESS_HISTFILE"
+    fi
+  else
+    _sl_last_exit=0
   fi
   _sl_last_cmd=""
+  _sl_ran_cmd=0
 }
 
 autoload -Uz add-zsh-hook
