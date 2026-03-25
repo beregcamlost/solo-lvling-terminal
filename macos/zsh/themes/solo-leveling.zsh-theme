@@ -210,6 +210,21 @@ _sl_info_bar() {
 
 add-zsh-hook precmd _sl_info_bar
 
+# ── Clear screen: keep info bar ─────────────────────────────
+# Override Ctrl+L to redraw the info bar after clearing.
+_sl_clear_screen() {
+  printf '\x1b[2J\x1b[H'
+  _sl_info_bar
+  zle reset-prompt
+}
+zle -N clear-screen _sl_clear_screen
+
+# Override `clear` command to redraw the info bar.
+clear() {
+  printf '\x1b[2J\x1b[H'
+  _sl_info_bar
+}
+
 # ── Prompt ────────────────────────────────────────────────────
 
 setopt PROMPT_SUBST

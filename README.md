@@ -32,6 +32,7 @@ Colors adapt to whichever Ghostty theme is active via `%F{N}` ANSI indices. Powe
 
 Additional features:
 
+- **Persistent info bar** — survives `clear` and Ctrl+L (screen is cleared via ANSI escapes, then the bar redraws)
 - **Success-only history suggestions** via a custom `zsh-autosuggestions` strategy (only exit-0 commands are suggested)
 - **Menu-select tab completion** with arrow-key navigation and case-insensitive matching
 
