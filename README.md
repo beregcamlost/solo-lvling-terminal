@@ -1,6 +1,6 @@
 # solo-lvling-terminal
 
-Solo Leveling anime-themed terminal setup — 3 Ghostty color schemes + powerline ZSH prompt.
+Solo Leveling anime-themed terminal setup — 3 Ghostty color schemes + powerline prompt for ZSH and Fish.
 
 ## Themes
 
@@ -28,20 +28,20 @@ Segments (left to right):
 - Node version () — hidden when not applicable
 - Error indicator () — shown only on non-zero exit
 
-Colors adapt to whichever Ghostty theme is active via `%F{N}` ANSI indices. Powerline arrows () separate segments.
+Colors adapt to whichever Ghostty theme is active via ANSI color indices. Powerline arrows () separate segments.
 
 Additional features:
 
 - **Persistent info bar** — survives `clear` and Ctrl+L (screen is cleared via ANSI escapes, then the bar redraws)
-- **Success-only history suggestions** via a custom `zsh-autosuggestions` strategy (only exit-0 commands are suggested)
-- **Menu-select tab completion** with arrow-key navigation and case-insensitive matching
+- **Success-only history** — only exit-0 commands are recorded to a separate history file
+- **macOS extras** — `zsh-autosuggestions` strategy using success history, menu-select tab completion with arrow navigation
 
 ## Platform Support
 
 | Platform | Shell | Prompt | Extras |
 |----------|-------|--------|--------|
 | **macOS** | ZSH (oh-my-zsh) | `solo-leveling.zsh-theme` | Success-only history, autosuggestions, smart completions |
-| **Linux** | Fish | `fish_prompt.fish` | Success-only history, `claude`/`claudia` aliases |
+| **Linux** | Fish | `fish_prompt.fish` | Powerline info bar, git/node segments, success-only history, `claude`/`claudia`/`claudeteam` aliases |
 
 ### Claude Code Aliases (Linux/Fish)
 
