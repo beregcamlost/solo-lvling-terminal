@@ -1,3 +1,7 @@
+# Solo Leveling — Right prompt: time in magenta
+
 function fish_right_prompt
-    # empty — keep it clean
+    set_color magenta
+    date +%H:%M
+    set_color normal
 end

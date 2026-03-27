@@ -1,5 +1,6 @@
-# Solo Leveling RPG Status Bar — Fish Prompt
-# Uses ANSI color codes to adapt to any Ghostty theme
+# Solo Leveling Powerline — Fish Prompt
+# Segment builder pattern: flat list rendered with arrow transitions
+# Arrow character  (U+E0B0) requires a Nerd Font
 
 function fish_prompt
     set -l last_status $status
@@ -10,30 +11,69 @@ function fish_prompt
     end
     set -g _sl_last_cmd ""
 
-    # Top line segments
-    set -l rank (set_color magenta --bold)"[SSS-RANK]"(set_color normal)" ⚡"
-    set -l user_info (set_color cyan)"🗡️  $USER@"(hostname -s)(set_color normal)
-    set -l dir_info (set_color yellow)"🏯  "(prompt_pwd)(set_color normal)
-    set -l time_info (set_color brblack)"⏱   "(date +%T)(set_color normal)
+    # ── Build segment list: "bg|fg|content" ──
+    set -l segments
+    set -l arrow \ue0b0
 
-    # Git segment (hidden outside repos)
-    set -l git_info ""
-    if git rev-parse --is-inside-work-tree &>/dev/null
-        set -l branch (git symbolic-ref --short HEAD 2>/dev/null; or git rev-parse --short HEAD 2>/dev/null)
-        if git diff --quiet HEAD &>/dev/null; and git diff --cached --quiet HEAD &>/dev/null
-            set git_info " | "(set_color magenta)"⚔️  $branch "(set_color green)"✓"(set_color normal)
+    # OS icon (Tux)
+    set -a segments "black|white| \uf17c "
+
+    # user@host
+    set -a segments "brblack|cyan| $USER@"(hostname -s)" "
+
+    # Folder
+    set -a segments "black|yellow| \uf07b "(_sl_short_dir)" "
+
+    # Git (conditional)
+    set -l git_data (_sl_git_info)
+    if test -n "$git_data"
+        set -l parts (string split '|' $git_data)
+        set -l branch $parts[1]
+        if test "$parts[2]" = 1
+            set -l ind (set_color red --background brblack)"\u2717"
+            set -a segments "brblack|blue| \ue0a0 $branch $ind "
         else
-            set git_info " | "(set_color magenta)"⚔️  $branch "(set_color red)"✗"(set_color normal)
+            set -l ind (set_color green --background brblack)"\u2713"
+            set -a segments "brblack|blue| \ue0a0 $branch $ind "
         end
     end
 
-    # HP bar: green on success, red on failure
-    if test $last_status -eq 0
-        set -l hp (set_color green)"██████████"(set_color normal)
-    else
-        set -l hp (set_color red)"██████████"(set_color normal)
+    # Node (conditional)
+    set -l node_ver (_sl_node_info)
+    if test -n "$node_ver"
+        set -a segments "black|green| \ue718 $node_ver "
     end
 
-    echo (set_color brblack)"╔═"(set_color normal)" $rank | $user_info | $dir_info$git_info | $time_info"
-    echo -n (set_color brblack)"╚═"(set_color normal)" [HP $hp] "(set_color magenta --bold)"►"(set_color normal)" "
+    # Error (conditional)
+    if test $last_status -ne 0
+        set -a segments "red|brwhite| \uf071 "
+    end
+
+    # ── Render segments with powerline arrows ──
+    set -l prev_bg ""
+    for seg in $segments
+        set -l p (string split -m 2 '|' $seg)
+        set -l bg $p[1]
+        set -l fg $p[2]
+        set -l content $p[3]
+
+        if test -n "$prev_bg"
+            set_color $prev_bg --background $bg
+            printf $arrow
+        end
+        set_color $fg --background $bg
+        printf '%s' $content
+        set prev_bg $bg
+    end
+
+    # Final closing arrow
+    set_color $prev_bg --background normal
+    printf $arrow
+    set_color normal
+    echo
+
+    # Prompt character
+    set_color magenta
+    printf '❯ '
+    set_color normal
 end

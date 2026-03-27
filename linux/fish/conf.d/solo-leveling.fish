@@ -11,3 +11,6 @@ set -g _sl_last_cmd ""
 function _sl_record_cmd --on-event fish_preexec
     set -g _sl_last_cmd $argv[1]
 end
+
+# Ctrl+L: clear screen and redraw info bar
+bind \cl 'printf "\x1b[2J\x1b[H"; commandline -f repaint'

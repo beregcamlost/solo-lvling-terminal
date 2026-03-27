@@ -51,7 +51,7 @@ case "$OS" in
     cp "$SCRIPT_DIR/linux/fish/conf.d/solo-leveling.fish" "$FISH_CONF_DIR/"
     echo "[+] Fish config installed to $FISH_CONF_DIR"
 
-    for f in fish_prompt fish_right_prompt claude claudia; do
+    for f in fish_prompt fish_right_prompt fish_title _sl_short_dir _sl_git_info _sl_node_info claude claudia claudeteam; do
       cp "$SCRIPT_DIR/linux/fish/functions/${f}.fish" "$FISH_FUNCTIONS_DIR/"
     done
     echo "[+] Fish functions installed to $FISH_FUNCTIONS_DIR"
