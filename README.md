@@ -12,23 +12,30 @@ Solo Leveling anime-themed terminal setup — 3 Ghostty color schemes + powerlin
 
 ## Prompt
 
-Powerline-style two-line prompt. The info bar is rendered via `precmd`; the input line is a clean `❯`.
+Two-line, p10k-Lean-inspired layout on the Solo Leveling palette. Box-drawing connectors (`╭─` / `─╮` / `╰─` / `─╯`) frame the prompt; powerline arrows separate segments.
 
 ```
-  beren@Beren-MBP  ~/…/nodejs/project   develop ✓   25.8.1
-❯
+╭─  beren@Beren-MBP  ~/…/nodejs/project   develop ✓   25.8.1 ──  ✔  3s  16:32 ─╮
+╰─❯
 ```
 
-Segments (left to right):
+**Left segments** (info bar, top line):
 
 - OS icon () — always shown
 - `user@host` — always shown
 - Folder () — smart-shortened path
 - Git branch + status ( branch  /  ) — hidden outside repos
 - Node version () — hidden when not applicable
-- Error indicator () — shown only on non-zero exit
 
-Colors adapt to whichever Ghostty theme is active via ANSI color indices. Powerline arrows () separate segments.
+**Right segments** (top line, joined by `│`):
+
+- Status — `✔` on success, `✘ <code>` on error
+- Command execution time — shown only when ≥3s
+- Current time — `HH:MM:SS`
+
+**Bottom line** — `╰─❯` where `❯` is green on success, red on error.
+
+Colors adapt to whichever Ghostty theme is active via ANSI color indices.
 
 Additional features:
 
